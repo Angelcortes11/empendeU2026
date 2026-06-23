@@ -1,58 +1,58 @@
-# AppLession
+ AppLession
 
 AppLession es una aplicación Android desarrollada con **Kotlin** y **Jetpack Compose** orientada al monitoreo biomecánico y la prevención de lesiones deportivas.
 
 Actualmente utiliza datos simulados, pero fue diseñada para integrarse en el futuro con sensores físicos como **ESP32, IMU, EMG y BPM**, permitiendo analizar el estado del deportista durante entrenamientos o actividades físicas.
 
-## Objetivo
+Objetivo
 
 El objetivo principal es ayudar a reducir el riesgo de lesiones mediante el monitoreo de variables como:
 
-* Estabilidad corporal
-* Fatiga muscular
-* Esfuerzo muscular
-* Frecuencia cardíaca
-* Riesgo de lesión
-* Historial de sesiones
+- Estabilidad corporal
+- Fatiga muscular
+- Esfuerzo muscular
+- Frecuencia cardíaca
+- Riesgo de lesión
+- Historial de sesiones
 
-## Funcionalidades
+ Funcionalidades
 
-### Dashboard
+ Dashboard
 
 Muestra métricas biomecánicas en tiempo real con actualización automática cada 2 segundos.
 
 Métricas disponibles:
 
-* Stability
-* Fatigue
-* Heart Rate
-* Muscle Effort
-* Injury Risk
+- Stability
+- Fatigue
+- Heart Rate
+- Muscle Effort
+- Injury Risk
 
-### Body Screen
+Body Screen
 
 Permite visualizar un modelo corporal simplificado con información sobre articulaciones y zonas musculares.
 
-### History Screen
+History Screen
 
 Registra sesiones de entrenamiento y está preparada para almacenar información mediante Room Database.
 
-### Settings
+Settings
 
 Incluye una sección de configuración pensada para futuras integraciones con Bluetooth y sensores externos.
 
-## Arquitectura
+Arquitectura
 
 La aplicación utiliza una arquitectura **MVVM** junto con:
 
-* Jetpack Compose
-* ViewModel
-* StateFlow
-* Coroutines
-* Repository Pattern
-* Room Database
+- Jetpack Compose
+- ViewModel
+- StateFlow
+- Coroutines
+- Repository Pattern
+- Room Database
 
-## Estructura del proyecto
+Estructura del proyecto
 
 ```text
 app/
@@ -67,36 +67,35 @@ app/
 └── AppDestinations.kt
 ```
 
-## Estado del proyecto
+  Estado del proyecto
 
 Implementado:
 
-* Dashboard funcional
-* Simulación de métricas
-* Pantalla corporal
-* Historial de sesiones
-* Configuración básica
-* Estructura de Room
-* Base para Bluetooth
+- Dashboard funcional
+- Simulación de métricas
+- Pantalla corporal
+- Historial de sesiones
+- Configuración básica
+- Estructura de Room
+- Base para Bluetooth
 
-Pendiente:
+  Pendiente:
 
-* Persistencia completa con Room
-* Comunicación BLE con ESP32
-* Integración de sensores físicos
-* Gráficos avanzados
-* Predicción de lesiones mediante modelos de Machine Learning
+- Persistencia completa con Room
+- Comunicación BLE con ESP32
+- Integración de sensores físicos
+- Gráficos avanzados
+- Predicción de lesiones mediante modelos de Machine Learning
 
-## Tecnologías utilizadas
+  Tecnologías utilizadas
 
-* Kotlin
-* Jetpack Compose
-* Material 3
-* Room Database
-* Coroutines
-* StateFlow
-* Bluetooth BLE (en desarrollo)
+- Kotlin
+- Jetpack Compose
+- Material 3
+- Room Database
+- Coroutines
+- StateFlow Bluetooth BLE (en desarrollo)
 
-## Autores
+Autores
 
 Proyecto desarrollado por estudiantes de la Escuela PROA La Falda.
