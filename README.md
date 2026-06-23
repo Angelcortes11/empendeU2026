@@ -1,171 +1,102 @@
-# empendeU2026
+# AppLession
 
-# 🦵 AppLession
+AppLession es una aplicación Android desarrollada con **Kotlin** y **Jetpack Compose** orientada al monitoreo biomecánico y la prevención de lesiones deportivas.
 
-AppLession es una aplicación Android desarrollada con **Kotlin** y **Jetpack Compose** que permite simular el monitoreo biomecánico de un deportista en tiempo real, mostrando métricas relacionadas con estabilidad, esfuerzo muscular, frecuencia cardíaca y riesgo de lesión.
+Actualmente utiliza datos simulados, pero fue diseñada para integrarse en el futuro con sensores físicos como **ESP32, IMU, EMG y BPM**, permitiendo analizar el estado del deportista durante entrenamientos o actividades físicas.
 
-El proyecto está inspirado en soluciones de análisis corporal y prevención de lesiones mediante sensores inteligentes.
+## Objetivo
 
----
+El objetivo principal es ayudar a reducir el riesgo de lesiones mediante el monitoreo de variables como:
 
-## 📱 Características
+* Estabilidad corporal
+* Fatiga muscular
+* Esfuerzo muscular
+* Frecuencia cardíaca
+* Riesgo de lesión
+* Historial de sesiones
 
-### Dashboard Interactivo
-- Indicadores de estabilidad
-- Fatiga muscular
-- Frecuencia cardíaca simulada
-- Riesgo de lesión
-- Actualización automática de métricas
+## Funcionalidades
 
-### Análisis Corporal
-- Modelo corporal simplificado
-- Representación de articulaciones
-- Indicadores de postura y movimiento
+### Dashboard
 
-### Historial de Sesiones
-- Registro local de entrenamientos
-- Persistencia mediante Room Database
-- Consulta de sesiones anteriores
+Muestra métricas biomecánicas en tiempo real con actualización automática cada 2 segundos.
 
-### Arquitectura Moderna
-- Jetpack Compose
-- MVVM
-- Repository Pattern
-- Room Database
-- StateFlow
-- ViewModel
+Métricas disponibles:
 
----
+* Stability
+* Fatigue
+* Heart Rate
+* Muscle Effort
+* Injury Risk
 
-## 🏗 Arquitectura
+### Body Screen
 
-La aplicación sigue el patrón MVVM recomendado por Google.
+Permite visualizar un modelo corporal simplificado con información sobre articulaciones y zonas musculares.
 
-```text
-UI (Compose)
-        │
-        ▼
-ViewModel
-        │
-        ▼
-Repository
-        │
-        ▼
-Room Database
-        │
-        ▼
-DAO
-```
+### History Screen
 
----
+Registra sesiones de entrenamiento y está preparada para almacenar información mediante Room Database.
 
-## 📂 Estructura del Proyecto
+### Settings
+
+Incluye una sección de configuración pensada para futuras integraciones con Bluetooth y sensores externos.
+
+## Arquitectura
+
+La aplicación utiliza una arquitectura **MVVM** junto con:
+
+* Jetpack Compose
+* ViewModel
+* StateFlow
+* Coroutines
+* Repository Pattern
+* Room Database
+
+## Estructura del proyecto
 
 ```text
 app/
-│
 ├── components/
-│   ├── BodyCanvas.kt
-│   ├── GaugeCard.kt
-│   ├── MuscleChart.kt
-│   └── RiskBar.kt
-│
 ├── database/
-│   ├── AppDatabase.kt
-│   └── SessionDao.kt
-│
 ├── models/
-│   ├── Metrics.kt
-│   └── Session.kt
-│
 ├── repository/
-│   ├── FakeRepository.kt
-│   └── SessionRepository.kt
-│
 ├── screens/
-│   ├── DashboardScreen.kt
-│   ├── BodyScreen.kt
-│   └── HistoryScreen.kt
-│
 ├── viewmodel/
-│   └── DashboardViewModel.kt
-│
-├── AppDestinations.kt
-└── MainActivity.kt
+├── bluetooth/
+├── MainActivity.kt
+└── AppDestinations.kt
 ```
 
----
+## Estado del proyecto
 
-## ⚙ Tecnologías Utilizadas
+Implementado:
 
-- Kotlin
-- Android Studio
-- Jetpack Compose
-- Material 3
-- Room Database
-- StateFlow
-- Coroutines
-- NavigationSuiteScaffold
-- Canvas API
+* Dashboard funcional
+* Simulación de métricas
+* Pantalla corporal
+* Historial de sesiones
+* Configuración básica
+* Estructura de Room
+* Base para Bluetooth
 
----
+Pendiente:
 
-## 🚀 Instalación
+* Persistencia completa con Room
+* Comunicación BLE con ESP32
+* Integración de sensores físicos
+* Gráficos avanzados
+* Predicción de lesiones mediante modelos de Machine Learning
 
-Clonar el repositorio
+## Tecnologías utilizadas
 
-```bash
-git clone https://github.com/usuario/AppLession.git
-```
+* Kotlin
+* Jetpack Compose
+* Material 3
+* Room Database
+* Coroutines
+* StateFlow
+* Bluetooth BLE (en desarrollo)
 
-Abrir el proyecto en Android Studio.
+## Autores
 
-Sincronizar Gradle.
-
-Ejecutar la aplicación en un emulador o dispositivo físico.
-
----
-
-## 📈 Simulación de Datos
-
-Actualmente las métricas se generan de manera simulada.
-
-Ejemplos:
-
-- Estabilidad: 300 - 900
-- Fatiga: 0 - 100%
-- Esfuerzo muscular: 30 - 100%
-- Frecuencia cardíaca: 70 - 180 BPM
-- Riesgo de lesión: 0 - 100%
-
-La actualización ocurre cada 2 segundos.
-
----
-
-## 🎯 Objetivo
-
-AppLession busca demostrar cómo las tecnologías móviles pueden utilizarse para:
-
-- Reducir lesiones deportivas.
-- Mejorar el rendimiento físico.
-- Monitorear el estado biomecánico del atleta.
-- Facilitar el análisis de sesiones de entrenamiento.
-
----
-
-## 🔮 Mejoras Futuras
-
-- Integración con sensores BLE.
-- Modelo corporal 3D.
-- Machine Learning para predicción de lesiones.
-- Exportación de reportes PDF.
-- Sincronización en la nube.
-- Compatibilidad con wearables.
-
----
-
-## 👨‍💻 Autores
-
-Proyecto desarrollado por estudiantes de **Escuela PROA La Falda**.
-
-Desarrollado con ❤️ utilizando Kotlin y Jetpack Compose.
+Proyecto desarrollado por estudiantes de la Escuela PROA La Falda.
