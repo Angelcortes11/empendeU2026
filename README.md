@@ -54,19 +54,41 @@ La aplicación utiliza una arquitectura **MVVM** junto con:
 
 Estructura del proyecto
 
+## Estructura del proyecto
+
 ```text
 app/
-├── components/
-├── database/
-├── models/
-├── repository/
-├── screens/
-├── viewmodel/
-├── bluetooth/
+│
 ├── MainActivity.kt
-└── AppDestinations.kt
+│
+├── ui/
+│   ├── AppDestinations.kt
+│   ├── DashboardScreen.kt
+│   └── DashboardScreen2.kt
+│
+├── viewmodel/
+│   └── DashboardViewModel.kt
+│
+├── repository/
+│   └── FakeRepository.kt
+│
+├── models/
+│   └── Metrics.kt
+│
+├── components/
+│   ├── GaugeCard.kt
+│   ├── MuscleChart.kt
+│   └── RiskBar.kt
+│
+├── manifests/
+│   └── AndroidManifest.xml
+│
+├── androidTest/
+│   └── ExampleInstrumentedTest.kt
+│
+└── test/
+    └── ExampleUnitTest.kt
 ```
-
   Estado del proyecto
 
 Implementado:
