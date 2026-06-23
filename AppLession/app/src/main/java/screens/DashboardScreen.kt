@@ -1,326 +1,129 @@
 package com.example.applession.screens
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-
-
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.applession.components.GaugeCard
+import com.example.applession.components.MuscleChart
+import com.example.applession.components.RiskBar
+import com.example.applession.viewmodel.DashboardViewModel
 
 @Composable
-fun DashboardScreen(){
+fun DashboardScreen() {
 
-
-    var stability by remember {
-
-        mutableStateOf(426)
-
-    }
-
-
-    var fatigue by remember {
-
-        mutableStateOf(10)
-
-    }
-
-
-    var heartRate by remember {
-
-        mutableStateOf(100)
-
-    }
-
-
-    var muscle by remember {
-
-        mutableStateOf(70)
-
-    }
-
-
-
-    var risk by remember {
-
-        mutableStateOf(48)
-
-    }
-
-
-
-
-    LaunchedEffect(Unit){
-
-
-        while(true){
-
-            delay(2000)
-
-
-            stability=(300..900).random()
-
-            fatigue=(0..100).random()
-
-            heartRate=(80..170).random()
-
-            muscle=(40..100).random()
-
-            risk=(0..100).random()
-
-        }
-
-
-    }
-
-
-
+    val vm: DashboardViewModel = viewModel()
+    val data by vm.metrics.collectAsState()
 
     LazyColumn(
-
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0D1321))
-            .padding(16.dp)
-
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
+        item {
+            Text(
+                text = "AppLession Dashboard",
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.White
+            )
+        }
 
-        item{
+        item {
+            GaugeCard(
+                title = "Stability",
+                value = data.stability,
+                max = 1000
+            )
+        }
 
+        item {
+            GaugeCard(
+                title = "Fatigue",
+                value = data.fatigue,
+                max = 100
+            )
+        }
 
+        item {
             Card(
-
-                modifier=Modifier.fillMaxWidth()
-
-            ){
-
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF1B2433)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Column(
-
-                    Modifier.padding(16.dp)
-
-                ){
-
+                    modifier = Modifier.padding(16.dp)
+                ) {
 
                     Text(
-
-                        "Stability",
-
-                        color=Color.White
-
+                        text = "Heart Rate",
+                        color = Color.White
                     )
 
+                    Spacer(Modifier.height(8.dp))
 
                     Text(
-
-                        "$stability",
-
-                        style=MaterialTheme.typography.headlineMedium
-
+                        text = "${data.heartRate} bpm",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.Red
                     )
-
                 }
-
-
             }
-
         }
 
-
-
-        item{
-
-
-            Spacer(Modifier.height(12.dp))
-
+        item {
+            MuscleChart(
+                value = data.muscleEffort
+            )
         }
 
+        item {
+            RiskBar(
+                risk = data.injuryRisk
+            )
+        }
 
-
-        item{
-
-            Card{
-
-
+        item {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF1B2433)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Column(
-
-                    Modifier.padding(16.dp)
-
-                ){
+                    modifier = Modifier.padding(16.dp)
+                ) {
 
                     Text(
-
-                        "Fatigue"
-
+                        "Status",
+                        color = Color.White
                     )
+
+                    Spacer(Modifier.height(8.dp))
 
                     Text(
-
-                        "$fatigue %"
-
+                        text = when {
+                            data.injuryRisk > 75 -> "High Injury Risk"
+                            data.fatigue > 70 -> "High Fatigue"
+                            else -> "Stable"
+                        },
+                        color = when {
+                            data.injuryRisk > 75 -> Color.Red
+                            data.fatigue > 70 -> Color.Yellow
+                            else -> Color.Green
+                        }
                     )
-
                 }
-
             }
-
         }
-
-
-
-        item{
-
-
-            Spacer(Modifier.height(12.dp))
-
-        }
-
-
-
-        item{
-
-
-            Card{
-
-
-                Column(
-
-                    Modifier.padding(16.dp)
-
-                ){
-
-                    Text(
-
-                        "Heart Rate"
-
-                    )
-
-                    Text(
-
-                        "$heartRate bpm"
-
-                    )
-
-                }
-
-
-            }
-
-
-        }
-
-
-
-
-
-
-
-        item{
-
-
-            Spacer(Modifier.height(12.dp))
-
-        }
-
-
-
-        item{
-
-
-            Card{
-
-
-                Column(
-
-                    Modifier.padding(16.dp)
-
-                ){
-
-                    Text(
-
-                        "Muscle Effort"
-
-                    )
-
-                    Text(
-
-                        "$muscle %"
-
-                    )
-
-                }
-
-
-            }
-
-
-        }
-
-
-
-        item{
-
-
-            Spacer(Modifier.height(12.dp))
-
-        }
-
-
-
-
-        item{
-
-
-            Card{
-
-
-                Column(
-
-                    Modifier.padding(16.dp)
-
-                ){
-
-                    Text(
-
-                        "Injury Risk"
-
-                    )
-
-                    Text(
-
-                        "$risk %"
-
-                    )
-
-
-                    LinearProgressIndicator(
-
-                        progress = risk/100f,
-
-                        modifier=Modifier.fillMaxWidth()
-
-                    )
-
-                }
-
-
-            }
-
-
-        }
-
-
     }
-
-
-
-}
-
-
-
 }
