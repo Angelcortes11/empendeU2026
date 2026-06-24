@@ -120,4 +120,4 @@ Implementado:
 
 Autores
 
-Proyecto desarrollado por estudiantes de la Escuela PROA La Falda.
+Proyecto desarrollado por estudiantes de 6to año de la Escuela PRoA La Falda.
