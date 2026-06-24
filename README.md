@@ -1,4 +1,4 @@
- AppLession
+AppLession, Equipo +Deporte
 
 AppLession es una aplicación Android desarrollada con **Kotlin** y **Jetpack Compose** orientada al monitoreo biomecánico y la prevención de lesiones deportivas.
 
