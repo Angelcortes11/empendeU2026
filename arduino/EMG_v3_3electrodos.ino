@@ -1,164 +1,220 @@
-// EMG_Nano.ino
-// Lectura de sensor EMG V3 (3 electrodos) en Arduino Nano
-// Muestreo con Timer1 a SAMPLE_RATE, cálculo de RMS en ventana móvil,
-// envolvente por EMA y salida por Serial (CSV).
-
+// EMG_Nano_with_Pot_FIXED.ino
 #include <Arduino.h>
+#include <math.h>
+#include <avr/interrupt.h>
 
 const uint8_t SAMPLE_PIN = A0;
-const unsigned long SAMPLE_RATE = 1000UL;    // Hz
-const unsigned int WINDOW_MS = 50;           // ventana RMS en ms
-const unsigned int PRINT_INTERVAL_MS = 50;   // cuánto enviamos por Serial
-const float VREF = 5.0f;                     // ajustar a 3.3 si usas 3.3V Nano
+const uint8_t POT_PIN = A1;
 
-// Buffer fijo para AVR (evita malloc). Máx 200 muestras (~200 ms a 1kHz)
+// Configuración
+const unsigned long SAMPLE_RATE = 1000UL;
+const unsigned int WINDOW_MS = 50;
+const unsigned int PRINT_INTERVAL_MS = 50;
+const float VREF = 5.0f;
+
 const unsigned int MAX_WINDOW_SAMPLES = 200;
+const float POT_MIN_CAL = 10.0f;
+const float POT_MAX_CAL = 800.0f;
+
+// Variables
 float bufferVals[MAX_WINDOW_SAMPLES];
+
 unsigned int windowSize = 0;
 unsigned int bufIndex = 0;
+
 float sumSquares = 0.0f;
+float baseline = 0.0f;
+float maxCalibration = 200.0f;
 
-// Calibración (en unidades ADC: 0..1023)
-float baseline = 0.0f;        // offset ADC
-float maxCalibration = 200.0f; // RMS correspondiente a 100% (en ADC units)
-
-// Timers/flags
-volatile bool sampleFlag = false;
+volatile uint16_t sampleCount = 0;
 unsigned long lastPrintMs = 0;
 
-void setupTimer1ForRate(unsigned long rateHz) {
-  // Timer1 CTC mode, prescaler 8
-  // OCR1A = (F_CPU / prescaler / rateHz) - 1
-  const uint32_t prescaler = 8;
-  uint32_t ocr = (F_CPU / prescaler / rateHz) - 1;
-  if (ocr > 0xFFFF) ocr = 0xFFFF;
+void setupTimer1ForRate(unsigned long rateHz);
+void calibrateBaseline(unsigned long dur_ms);
 
-  cli();
-  TCCR1A = 0;
-  TCCR1B = 0;
-  TCCR1B |= _BV(WGM12);       // CTC
-  TCCR1B |= _BV(CS11);        // prescaler 8
-  OCR1A = (uint16_t)ocr;
-  TIMSK1 |= _BV(OCIE1A);      // Enable compare interrupt
-  sei();
+void setupTimer1ForRate(unsigned long rateHz)
+{
+    const uint32_t prescaler = 8;
+    uint32_t ocr = (F_CPU / prescaler / rateHz) - 1;
+
+    if (ocr > 65535)
+        ocr = 65535;
+
+    cli();
+
+    TCCR1A = 0;
+    TCCR1B = 0;
+    TIMSK1 = 0;
+
+    TCCR1B |= _BV(WGM12); // CTC
+    TCCR1B |= _BV(CS11);  // prescaler 8
+
+    OCR1A = (uint16_t)ocr;
+    TIMSK1 |= _BV(OCIE1A);
+
+    sei();
 }
 
-ISR(TIMER1_COMPA_vect) {
-  sampleFlag = true;
+ISR(TIMER1_COMPA_vect)
+{
+    if (sampleCount < 65535)
+        sampleCount++;
 }
 
-void setup() {
-  Serial.begin(115200);
-  analogReference(DEFAULT); // AREF = Vcc (ajusta si usas referencia externa)
-  pinMode(SAMPLE_PIN, INPUT);
+void setup()
+{
+    Serial.begin(115200);
+    analogReference(DEFAULT);
 
-  // calcular tamaño de ventana y limitar
-  windowSize = max(1u, (unsigned int)((SAMPLE_RATE * WINDOW_MS) / 1000u));
-  if (windowSize > MAX_WINDOW_SAMPLES) windowSize = MAX_WINDOW_SAMPLES;
+    pinMode(SAMPLE_PIN, INPUT);
+    pinMode(POT_PIN, INPUT);
 
-  // inicializar buffer
-  for (unsigned int i = 0; i < windowSize; ++i) bufferVals[i] = 0.0f;
-  sumSquares = 0.0f;
-  bufIndex = 0;
+    windowSize = (unsigned int)((SAMPLE_RATE * WINDOW_MS) / 1000UL);
 
-  Serial.println("EMG reader (Nano) inicializado");
-  Serial.print("Sample rate: "); Serial.print(SAMPLE_RATE); Serial.println(" Hz");
-  Serial.print("Window (ms): "); Serial.println(WINDOW_MS);
-  Serial.print("Window size (samples): "); Serial.println(windowSize);
-  Serial.print("Vref (V): "); Serial.println(VREF, 3);
+    if (windowSize < 1)
+        windowSize = 1;
 
-  // calibraciones
-  delay(200);
-  calibrateBaseline(1000); // 1s para baseline
-  Serial.print("Baseline medido (ADC): "); Serial.println(baseline, 2);
+    if (windowSize > MAX_WINDOW_SAMPLES)
+        windowSize = MAX_WINDOW_SAMPLES;
 
-  Serial.println("Si quieres calibrar máximo, haz una contracción máxima ahora (5s)...");
-  delay(500);
-  calibrateMax(5000);
-  Serial.print("Max calibration (ADC RMS estimate): "); Serial.println(maxCalibration, 2);
+    for (unsigned int i = 0; i < windowSize; i++)
+        bufferVals[i] = 0.0f;
 
-  // configurar Timer1
-  setupTimer1ForRate(SAMPLE_RATE);
-  lastPrintMs = millis();
+    Serial.println("================================");
+    Serial.println(" EMG Nano Inicializado");
+    Serial.println("================================");
+
+    Serial.print("Sample Rate: ");
+    Serial.println(SAMPLE_RATE);
+
+    Serial.print("Window Samples: ");
+    Serial.println(windowSize);
+
+    delay(500);
+
+    Serial.println("Calibrando baseline...");
+    calibrateBaseline(3000);
+
+    Serial.print("Baseline: ");
+    Serial.println(baseline, 2);
+
+    setupTimer1ForRate(SAMPLE_RATE);
+    lastPrintMs = millis();
 }
 
-void loop() {
-  // cuando el timer marca, procesar una muestra
-  if (sampleFlag) {
-    sampleFlag = false;
+void loop()
+{
+    while (true)
+    {
+        noInterrupts();
 
-    int raw = analogRead(SAMPLE_PIN); // 0..1023
-    float centered = (float)raw - baseline;
+        if (sampleCount == 0)
+        {
+            interrupts();
+            break;
+        }
 
-    // actualizar buffer circular y sumSquares eficientemente
-    float old = bufferVals[bufIndex];
-    bufferVals[bufIndex] = centered;
-    sumSquares = sumSquares - (old * old) + (centered * centered);
+        sampleCount--;
+        interrupts();
 
-    bufIndex++;
-    if (bufIndex >= windowSize) bufIndex = 0;
-  }
+        int raw = analogRead(SAMPLE_PIN);
 
-  // salida periódica
-  unsigned long msNow = millis();
-  if (msNow - lastPrintMs >= PRINT_INTERVAL_MS) {
-    lastPrintMs = msNow;
-    float meanSquares = sumSquares / (float)windowSize;
-    float rms = sqrt(meanSquares); // RMS en unidades ADC
+        // Baseline dinámico (compensa drift)
+        baseline = baseline * 0.999f + raw * 0.001f;
 
-    // Envolvente (EMA)
-    static float envelope = 0.0f;
-    const float alpha = 0.2f;
-    envelope = alpha * rms + (1.0f - alpha) * envelope;
+        float centered = (float)raw - baseline;
 
-    // Normalizar a 0..100% usando maxCalibration (en ADC)
-    float pct = 0.0f;
-    if (maxCalibration > 1e-6f) {
-      pct = (envelope / maxCalibration) * 100.0f;
-      if (pct < 0.0f) pct = 0.0f;
-      if (pct > 100.0f) pct = 100.0f;
+        float old = bufferVals[bufIndex];
+        bufferVals[bufIndex] = centered;
+
+        sumSquares -= old * old;
+        sumSquares += centered * centered;
+
+        if (sumSquares < 0.0f)
+            sumSquares = 0.0f;
+
+        bufIndex++;
+
+        if (bufIndex >= windowSize)
+            bufIndex = 0;
     }
 
-    // Convertir a voltios/mV
-    float rmsV = (rms / 1023.0f) * VREF;
-    float envV = (envelope / 1023.0f) * VREF;
+    unsigned long now = millis();
 
-    // Imprimir CSV: tiempo_ms, raw_rms_ADC, rms_V, envelope_V, pct
-    Serial.print(msNow);
-    Serial.print(',');
-    Serial.print(rms, 2);
-    Serial.print(',');
-    Serial.print(rmsV * 1000.0f, 1); // mV
-    Serial.print(',');
-    Serial.print(envV * 1000.0f, 1); // mV
-    Serial.print(',');
-    Serial.println(pct, 1);
-  }
+    if (now - lastPrintMs >= PRINT_INTERVAL_MS)
+    {
+        lastPrintMs = now;
+
+        int potRaw = analogRead(POT_PIN);
+
+        maxCalibration =
+            POT_MIN_CAL +
+            ((float)potRaw / 1023.0f) *
+            (POT_MAX_CAL - POT_MIN_CAL);
+
+        float meanSquares = sumSquares / (float)windowSize;
+
+        if (meanSquares < 0.0f)
+            meanSquares = 0.0f;
+
+        float rms = sqrt(meanSquares);
+
+        static float envelope = 0.0f;
+        const float alpha = 0.20f;
+
+        envelope = alpha * rms + (1.0f - alpha) * envelope;
+
+        float pct = 0.0f;
+
+        if (maxCalibration > 0.0f)
+        {
+            pct = envelope * 100.0f / maxCalibration;
+
+            if (pct < 0.0f)
+                pct = 0.0f;
+
+            if (pct > 100.0f)
+                pct = 100.0f;
+        }
+
+        float rmsV = rms * VREF / 1023.0f;
+        float envV = envelope * VREF / 1023.0f;
+
+        Serial.print(now);
+        Serial.print(",");
+
+        Serial.print(rms, 2);
+        Serial.print(",");
+
+        Serial.print(rmsV * 1000.0f, 1);
+        Serial.print(",");
+
+        Serial.print(envV * 1000.0f, 1);
+        Serial.print(",");
+
+        Serial.print(pct, 1);
+        Serial.print(",");
+
+        Serial.print(potRaw);
+        Serial.print(",");
+
+        Serial.println(maxCalibration, 1);
+    }
 }
 
-// Mide baseline promedio durante dur_ms milisegundos (en ADC units)
-void calibrateBaseline(unsigned long dur_ms) {
-  unsigned long end = millis() + dur_ms;
-  unsigned long count = 0;
-  unsigned long accum = 0;
-  while (millis() < end) {
-    accum += analogRead(SAMPLE_PIN);
-    count++;
-    delay(1);
-  }
-  if (count > 0) baseline = (float)accum / (float)count;
-}
+void calibrateBaseline(unsigned long dur_ms)
+{
+    unsigned long start = millis();
+    unsigned long count = 0;
+    unsigned long accum = 0;
 
-// Pide contracción máxima y estima RMS pico (en ADC units)
-void calibrateMax(unsigned long dur_ms) {
-  unsigned long end = millis() + dur_ms;
-  float peak = 0.0f;
-  while (millis() < end) {
-    int raw = analogRead(SAMPLE_PIN);
-    float centered = fabs((float)raw - baseline);
-    if (centered > peak) peak = centered;
-    delay(2);
-  }
-  // Ajuste empírico: RMS suele ser menor que pico, factor ~0.6
-  maxCalibration = max(peak * 0.6f, 1.0f);
+    while (millis() - start < dur_ms)
+    {
+        accum += analogRead(SAMPLE_PIN);
+        count++;
+        delay(1);
+    }
+
+    if (count > 0)
+        baseline = (float)accum / (float)count;
 }
